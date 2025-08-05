@@ -12,14 +12,25 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 @Service
 public class DynamicSwaggerToWordService {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper jsonMapper = new ObjectMapper();
+    private final YAMLMapper yamlMapper = new YAMLMapper();
 
     public File generateWordDocFromYaml(String yamlPath) throws Exception {
-        JsonNode root = objectMapper.readTree(new FileInputStream(yamlPath));
+        // Determine if input is YAML or JSON
+        JsonNode root;
+        try (FileInputStream fis = new FileInputStream(yamlPath)) {
+            if (yamlPath.toLowerCase().endsWith(".yaml") || yamlPath.toLowerCase().endsWith(".yml")) {
+                root = yamlMapper.readTree(fis);
+            } else {
+                root = jsonMapper.readTree(fis);
+            }
+        }
+
         XWPFDocument doc = new XWPFDocument();
 
         // Basic Info Section
@@ -217,6 +228,7 @@ public class DynamicSwaggerToWordService {
         }
         return false;
     }
+
     // Helper methods for table formatting
     private void setTableBorders(XWPFTable table) {
         table.setCellMargins(100, 100, 100, 100);
