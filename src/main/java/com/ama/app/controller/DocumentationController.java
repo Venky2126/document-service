@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ama.app.doc.DynamicSwaggerToWordService;
+import com.ama.app.doc.DynamicSwaggerToWordServiceResponseFlat;
 
 
 @RestController
@@ -22,6 +23,8 @@ public class DocumentationController {
 
     @Autowired
     private DynamicSwaggerToWordService docGenerator;
+    @Autowired
+    private DynamicSwaggerToWordServiceResponseFlat responseObject;
 
     @PostMapping("/generate")
     public ResponseEntity<Resource> generateDocumentation(
@@ -35,5 +38,20 @@ public class DocumentationController {
                    "attachment; filename=\"" + wordDoc.getName() + "\"")
             .body(new FileSystemResource(wordDoc));
     }
+    
+    @PostMapping("/response")
+    public ResponseEntity<Resource> generateDocumentationResponseObject(
+            @RequestParam("yamlPath") String yamlPath) throws Exception {
+        
+        File wordDoc = responseObject.generateWordDocFromYaml(yamlPath);
+        
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(HttpHeaders.CONTENT_DISPOSITION, 
+                   "attachment; filename=\"" + wordDoc.getName() + "\"")
+            .body(new FileSystemResource(wordDoc));
+    }
+    
+    
 
 }
